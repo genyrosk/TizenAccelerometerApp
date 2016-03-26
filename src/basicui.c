@@ -133,6 +133,7 @@ static char format_time(float time, char time_str){
 	sprintf(time_str,"%s\n", time_str);
 }*/
 
+/*
 static void save_data(){
 	//int filename_l = 30;
 	//int cell_size = 20;
@@ -142,18 +143,34 @@ static void save_data(){
 	//char cell[cell_size];        		// buffer to hold your text
 	char *dir = app_get_data_path();
 	char filename = "data.json";
-	//strcat(filename, dir);
+	strcat(filename, dir);
 
-	//char cell = "[data]";
-	//dlog_print(DLOG_DEBUG, LOG_TAG, filename);
+	char cell = "[data]";
+	dlog_print(DLOG_DEBUG, LOG_TAG, filename);
 
-	//write_file = fopen(filename, "ab+");    // create/overwrite file user named
+	write_file = fopen(filename, "ab+");    // create/overwrite file user named
 
-	//if (!write_file) {dlog_print(DLOG_DEBUG, LOG_TAG, "Fail to get file");} // failed to create FILE *
+	if (!write_file) {dlog_print(DLOG_DEBUG, LOG_TAG, "Fail to get file");} // failed to create FILE *
 
 	// while getting input, print to file
-	//fputs(cell, write_file);
-	//fclose(write_file);
+	fputs(cell, write_file);
+	fclose(write_file);
+}*/
+
+static void save_data(void *data){
+
+	appdata_s *ad = (appdata_s*)data;
+
+	// This is to delete all the previous files
+	//system("exec rm -r /opt/usr/media/Documents/*");
+
+	char filename[50];
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+	sprintf(filename, "/opt/usr/media/Downloads/data-%d-%d-%d_%d-%d-%d.txt", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	ad->fp = fopen (filename, "w+");
+	fprintf(ad->fp, "%s\n", "it f****** worked!");
+	fclose(ad->fp);
 }
 
 static void nothing(){
@@ -208,7 +225,7 @@ static void _button_click_cb(void *data, Evas_Object *button, void *ev)
 	   elm_object_text_set(button,"Start");
 	   elm_object_text_set(ad->label2, "00:00");
 
-	   save_data(); // save data into file
+	   save_data(ad); // save data into file
 	   //nothing();
    }
 }
@@ -282,6 +299,10 @@ create_base_gui(appdata_s *ad)
 
 	/* Show window after base gui is set up */
 	evas_object_show(ad->win);
+
+
+	//test
+	//save_data(ad);
 }
 
 static bool
@@ -385,13 +406,13 @@ main(int argc, char *argv[])
 	ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, ui_app_region_changed, &ad);
 	ui_app_remove_event_handler(handlers[APP_EVENT_LOW_MEMORY]);
 
-	save_data();
-	//char *dir = app_get_data_path();
+
 
 	ret = ui_app_main(argc, argv, &event_callback, &ad);
 	if (ret != APP_ERROR_NONE) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "app_main() is failed. err = %d", ret);
 	}
+
 
 	return ret;
 }
