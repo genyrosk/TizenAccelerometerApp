@@ -11,6 +11,9 @@
 #include <time.h> 	/* time_t, struct tm, time, localtime */
 #include <math.h>
 
+#define ACCELEROMETER_INTERVAL_MS 10
+#define GYROSCOPE_INTERVAL_MS 10
+
 typedef struct appdata {
     /* application acceleration data */
 	float aX;
