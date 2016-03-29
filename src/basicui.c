@@ -217,7 +217,9 @@ static void write_data(void *data){
 
 	for( int i=0; i<(ad->i); ++i){
 
-		sprintf(data_string, "{ \"timestamp\": %f, \"aX\": %f , \"aY\": %f, \"aZ\": %f },", (ad->all_data)[i][0], (ad->all_data)[i][1], (ad->all_data)[i][2], (ad->all_data)[i][3] );
+		sprintf(data_string, "{ \"timestamp\": %f, \"aX\": %f , \"aY\": %f, \"aZ\": %f, \"timestamp_g\": %f, \"rX\": %f , \"rY\": %f, \"rZ\": %f },",
+				(ad->all_data)[i][0], (ad->all_data)[i][1], (ad->all_data)[i][2], (ad->all_data)[i][3],
+				(ad->all_data)[i][4], (ad->all_data)[i][5], (ad->all_data)[i][6], (ad->all_data)[i][7] );
 		fprintf(ad->fp, "%s\n", data_string);
 
 	}
@@ -240,14 +242,17 @@ static void save_data(void *data){
 	char current_time_str[50];
 
 	// date formating
-	sprintf(current_time_str, "%d-%d-%d_%d-%d-%d",(ad->timeinfo)->tm_year + 1900,(ad->timeinfo)->tm_mon + 1,(ad->timeinfo)->tm_mday,(ad->timeinfo)->tm_hour,(ad->timeinfo)->tm_min,(ad->timeinfo)->tm_sec);
+	sprintf(current_time_str, "%d-%d-%d_%d-%d-%d",
+			(ad->timeinfo)->tm_year + 1900,(ad->timeinfo)->tm_mon + 1,
+			(ad->timeinfo)->tm_mday,(ad->timeinfo)->tm_hour,
+			(ad->timeinfo)->tm_min,(ad->timeinfo)->tm_sec);
 
 	sprintf(filename, "/opt/usr/media/Downloads/data-%s.txt", current_time_str);
 	ad->fp = fopen (filename, "w+");
 
 
 	fprintf(ad->fp, "%s\n", "{ 	\"smartwatch\": { ");
-	fprintf(ad->fp, " \"time_start\": %s\n ,", current_time_str);	// save current time
+	fprintf(ad->fp, " \"time_start\": %s ,", current_time_str);	// save current time
 	write_data(ad);													// save data
 	fprintf(ad->fp, "%s\n", "} ");
 	fprintf(ad->fp, "%s\n", "} ");
@@ -300,6 +305,7 @@ static void _button_click_cb(void *data, Evas_Object *button, void *ev)
 	   /* ------------------------------------------ */
 
 	   int error = sensor_listener_stop(ad->accelerationListener); // unset the sensor callback function
+	   	   error = sensor_listener_stop(ad->gyroscopeListener);
 
 	   // change button and label value
 	   elm_object_text_set(button,"Start");
