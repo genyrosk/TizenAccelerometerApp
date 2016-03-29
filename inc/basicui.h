@@ -8,7 +8,7 @@
 #include <dlog.h>
 #include <sensor.h>
 #include <string.h>
-#include <time.h> /* time_t, struct tm, time, localtime */
+#include <time.h> 	/* time_t, struct tm, time, localtime */
 #include <math.h>
 
 typedef struct appdata {
