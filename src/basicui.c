@@ -1,6 +1,6 @@
 #include "basicui.h"
 
-/* ------------------------------------------------ */
+/* -------------------------------------------------- */
 
 #define ACCELEROMETER_INTERVAL_MS 10
 #define GYROSCOPE_INTERVAL_MS 10
