@@ -22,10 +22,15 @@ typedef struct appdata {
 	float rY;
 	float rZ;
 
-	/* applicaiton timestamp */
+	/* application timestamp */
 	float timestamp;
 	float start_t;
 	char sys_time[30];
+	//struct tm sys_time;
+	struct tm * timeinfo;
+
+	/* Other objects */
+	FILE * fp;
 
 	/* accelerometer objects */
     sensor_h accelerometer;

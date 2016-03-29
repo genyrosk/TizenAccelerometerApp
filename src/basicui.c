@@ -6,6 +6,11 @@
 
 #define ACCELEROMETER_INTERVAL_MS 20
 
+
+/* Register the accelerometer sensor */
+/* and link to the callback function */
+/* Run once at the start of the app  */
+/* --------------------------------------------*/
 static int
 register_accelerometer_callback(appdata_s *ad)
 {
@@ -53,32 +58,33 @@ static void get_current_datetime( char *datetime){
 	sprintf(datetime, "%s", asctime(timeinfo));
 }*/
 
+/* Accelerometer callback function (called every 10MS) */
+/* --------------------------------------------------- */
 static void
 accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data){
 
     appdata_s * ad = (appdata_s *)data;
 
     /*
-        Acceleration for each axis:
-        	(float)event->values[0]
-        	(float)event->values[1]
-        	(float)event->values[2]
+    	Save the very first timestamp collected
     */
+    if (ad->i == 1){
+    	ad->start_t = event->timestamp;
+    }
 
-    // save current time
-    /*ad->sys_time = get_current_datetime();*/
-
-
-	ad->timestamp = event->timestamp;
+    /*
+        Acceleration for each axis:
+    */
+	ad->timestamp = (event->timestamp) - (ad->start_t);
     ad->aX = event->values[0];
     ad->aY = event->values[1];
     ad->aZ = event->values[2];
 
+
     /*
-	char aX_str[10];
-	sprintf (aX_str, "%f", ad->aX);*/
-
-
+      	 Purely visual => shows timestamp to user
+      	 may affect performance...
+    */
 	// float to string formatting
 	char timestamp_str[40];
 	sprintf(timestamp_str, "%f",ad->timestamp);
@@ -94,24 +100,27 @@ accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data){
 	//char* time = eina_counter_dump(ad->counter);
 	elm_object_text_set(ad->label, timestamp_str);
 
-	// save data in the all_data array
+
+	/*
+	 	 save data in the all_data array
+	*/
 	(ad->all_data)[ad->i][0] = ad->timestamp;
 	(ad->all_data)[ad->i][1] = ad->aX;
 	(ad->all_data)[ad->i][2] = ad->aY;
 	(ad->all_data)[ad->i][3] = ad->aZ;
-	//(ad->all_data)[ad->i][4] = ad->timestamp;
-	//(ad->all_data)[ad->i][5] = ad->timestamp;
-	//(ad->all_data)[ad->i][6] = ad->timestamp;
+	//(ad->all_data)[ad->i][4] = ad->rX;
+	//(ad->all_data)[ad->i][5] = ad->rY;
+	//(ad->all_data)[ad->i][6] = ad->rZ;
 
+	/* increase counter */
 	ad->i += 1;
+
+
 
 }
 
 
-//---------------------------------
-//---------------------------------
-//---------------------------------
-
+/* ------------------------------------------------- */
 static void
 win_delete_request_cb(void *data, Evas_Object *obj, void *event_info)
 {
@@ -133,30 +142,31 @@ static char format_time(float time, char time_str){
 	sprintf(time_str,"%s\n", time_str);
 }*/
 
-/*
-static void save_data(){
-	//int filename_l = 30;
-	//int cell_size = 20;
+/* Save all data onto the text file */
+/* ------------------------------------------------ */
+static void write_data(void *data){
 
-	FILE * write_file;              	// pointer to file you will write to
-	//char filename[filename_l];     		// variable to hold the name of file
-	//char cell[cell_size];        		// buffer to hold your text
-	char *dir = app_get_data_path();
-	char filename = "data.json";
-	strcat(filename, dir);
+	appdata_s *ad = (appdata_s*)data;
 
-	char cell = "[data]";
-	dlog_print(DLOG_DEBUG, LOG_TAG, filename);
+	fprintf(ad->fp, "%s\n", " \"watch_data\": [ ");
 
-	write_file = fopen(filename, "ab+");    // create/overwrite file user named
 
-	if (!write_file) {dlog_print(DLOG_DEBUG, LOG_TAG, "Fail to get file");} // failed to create FILE *
+	char data_string[1024];
 
-	// while getting input, print to file
-	fputs(cell, write_file);
-	fclose(write_file);
-}*/
+	for( int i=0; i<(ad->i); ++i){
 
+		sprintf(data_string, "{ \"timestamp\": %f, \"aX\": %f , \"aY\": %f, \"aZ\": %f },", (ad->all_data)[i][0], (ad->all_data)[i][1], (ad->all_data)[i][2], (ad->all_data)[i][3] );
+		fprintf(ad->fp, "%s\n", data_string);
+
+	}
+
+
+	fprintf(ad->fp, "%s\n", "], ");
+}
+
+
+/* Open and save Text file */
+/* ----------------------------------------------- */
 static void save_data(void *data){
 
 	appdata_s *ad = (appdata_s*)data;
@@ -165,19 +175,27 @@ static void save_data(void *data){
 	//system("exec rm -r /opt/usr/media/Documents/*");
 
 	char filename[50];
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
-	sprintf(filename, "/opt/usr/media/Downloads/data-%d-%d-%d_%d-%d-%d.txt", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	char current_time_str[50];
+
+	// date formating
+	sprintf(current_time_str, "%d-%d-%d_%d-%d-%d",(ad->timeinfo)->tm_year + 1900,(ad->timeinfo)->tm_mon + 1,(ad->timeinfo)->tm_mday,(ad->timeinfo)->tm_hour,(ad->timeinfo)->tm_min,(ad->timeinfo)->tm_sec);
+
+	sprintf(filename, "/opt/usr/media/Downloads/data-%s.txt", current_time_str);
 	ad->fp = fopen (filename, "w+");
-	fprintf(ad->fp, "%s\n", "it f****** worked!");
-	fclose(ad->fp);
+
+
+	fprintf(ad->fp, "%s\n", "{ 	\"smartwatch\": { ");
+	fprintf(ad->fp, " \"time_start\": %s\n ,", current_time_str);	// save current time
+	write_data(ad);													// save data
+	fprintf(ad->fp, "%s\n", "} ");
+	fprintf(ad->fp, "%s\n", "} ");
+
+	fclose(ad->fp);													// close file
 }
 
-static void nothing(){
 
-	int x = 12;
-}
-
+/* "Start"/"Stop" button click event */
+/* ----------------------------------------------------------------- */
 static void _button_click_cb(void *data, Evas_Object *button, void *ev)
 {
 	appdata_s *ad = data;
@@ -185,25 +203,24 @@ static void _button_click_cb(void *data, Evas_Object *button, void *ev)
 	if ( strcmp(elm_object_part_text_get(button, NULL), "Start") == 0 ){ // compare button string and "Start"
 
 		/* Start the accelerometer and data collection */
-		/* --------------------------------------------*/
+		/* ------------------------------------------- */
 
-		// reset data start accelerometer
+		// reset data array
 		ad->i = 0;
 		memset(ad->all_data, 0.0f, sizeof(ad->all_data));
 
 		// capture current time
 		time_t rawtime;
-		struct tm * timeinfo;
 		time (&rawtime);
-		timeinfo = localtime (&rawtime);
-		sprintf(ad->sys_time, "%s", asctime(timeinfo));
+		ad->timeinfo = localtime (&rawtime);
+		//sprintf(ad->sys_time, "%s", asctime(timeinfo));
 
 		//start accelerometer
 	    int error = sensor_listener_start(ad->accelerationListener );
 
 		// save starting time + change button value
 		elm_object_text_set(button,"Stop");
-		ad->start_t = ad->timestamp;
+		//ad->start_t = ad->timestamp;
 
 		// float to string formatting
 		char timestamp_str[20];
@@ -230,11 +247,14 @@ static void _button_click_cb(void *data, Evas_Object *button, void *ev)
    }
 }
 
+
+/* Create app UI (buttons + labels) */
+/* ----------------------------------------------------------------- */
 static void
 create_base_gui(appdata_s *ad)
 {
 	/* Window */
-	/* ----------------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------- */
 	ad->win = elm_win_util_standard_add(PACKAGE, PACKAGE);
 	elm_win_autodel_set(ad->win, EINA_TRUE);
 
@@ -305,6 +325,9 @@ create_base_gui(appdata_s *ad)
 	//save_data(ad);
 }
 
+
+/* Rest of standard Tizen functions for the app creation process */
+/* ----------------------------------------------------------------- */
 static bool
 app_create(void *data)
 {
@@ -405,7 +428,6 @@ main(int argc, char *argv[])
 	ui_app_add_event_handler(&handlers[APP_EVENT_LANGUAGE_CHANGED], APP_EVENT_LANGUAGE_CHANGED, ui_app_lang_changed, &ad);
 	ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, ui_app_region_changed, &ad);
 	ui_app_remove_event_handler(handlers[APP_EVENT_LOW_MEMORY]);
-
 
 
 	ret = ui_app_main(argc, argv, &event_callback, &ad);
