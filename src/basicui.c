@@ -1,11 +1,81 @@
 #include "basicui.h"
 
-// -------------------------------
-// --------------------------------
-//---------------------------------
+/* ------------------------------------------------ */
 
-#define ACCELEROMETER_INTERVAL_MS 20
+#define ACCELEROMETER_INTERVAL_MS 10
+#define GYROSCOPE_INTERVAL_MS 10
 
+/* Register the Gyroscope sensor */
+/* and link to the callback function */
+/* Run once at the start of the app  */
+/* --------------------------------------------*/
+static int
+register_gyroscope_callback(appdata_s *ad)
+{
+
+	dlog_print(DLOG_INFO, "basicui", "started");
+
+    int error;
+    bool supported;
+    sensor_h *gyroscope = ad->gyroscope;
+    sensor_listener_h *gyroscopeListener = ad->gyroscopeListener;
+
+    error = sensor_is_supported( SENSOR_GYROSCOPE , &supported );
+    if(error != SENSOR_ERROR_NONE && supported){
+     return error;
+    }
+
+    error = sensor_get_default_sensor(SENSOR_GYROSCOPE , &gyroscope);
+    if(error != SENSOR_ERROR_NONE){
+     return error;
+    }
+
+    error = sensor_create_listener( gyroscope, &(ad->gyroscopeListener));
+    if(error != SENSOR_ERROR_NONE){
+     return error;
+    }
+
+    error = sensor_listener_set_event_cb( ad->gyroscopeListener,
+    		GYROSCOPE_INTERVAL_MS, gyroscope_cb, ad );
+    if(error != SENSOR_ERROR_NONE){
+     return error;
+    }
+
+	//dlog_print(DLOG_INFO, "basicui", "listener");
+
+    return SENSOR_ERROR_NONE;
+}
+/* Gyroscope callback function (called every 10MS) */
+/* --------------------------------------------------- */
+static void
+gyroscope_cb(sensor_h sensor, sensor_event_s *event, void *data){
+
+    appdata_s * ad = (appdata_s *)data;
+
+    /*	Save the very first timestamp collected
+    */
+    if (ad->j == 1){
+    	ad->start_t_g = event->timestamp;
+    }
+
+    /*	Acceleration for each axis:
+    */
+	ad->timestamp_g = (event->timestamp) - (ad->start_t_g);
+    ad->rX = event->values[0];
+    ad->rY = event->values[1];
+    ad->rZ = event->values[2];
+
+	/*	save data in the all_data array
+	*/
+	(ad->all_data)[ad->j][4] = ad->timestamp_g;
+	(ad->all_data)[ad->j][5] = ad->rX;
+	(ad->all_data)[ad->j][6] = ad->rY;
+	(ad->all_data)[ad->j][7] = ad->rZ;
+
+	/* increase counter */
+	ad->j += 1;
+
+}
 
 /* Register the accelerometer sensor */
 /* and link to the callback function */
@@ -47,16 +117,7 @@ register_accelerometer_callback(appdata_s *ad)
 
     return SENSOR_ERROR_NONE;
 }
-/*
-static void get_current_datetime( char *datetime){
-	// pass variable => char datetime = "";
-	// as => get_current_datetime( &datetime);
-	time_t rawtime;
-	struct tm * timeinfo;
-	time (&rawtime);
-	timeinfo = localtime (&rawtime);
-	sprintf(datetime, "%s", asctime(timeinfo));
-}*/
+
 
 /* Accelerometer callback function (called every 10MS) */
 /* --------------------------------------------------- */
@@ -65,15 +126,13 @@ accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data){
 
     appdata_s * ad = (appdata_s *)data;
 
-    /*
-    	Save the very first timestamp collected
+    /*	Save the very first timestamp collected
     */
     if (ad->i == 1){
     	ad->start_t = event->timestamp;
     }
 
-    /*
-        Acceleration for each axis:
+    /*	Acceleration for each axis:
     */
 	ad->timestamp = (event->timestamp) - (ad->start_t);
     ad->aX = event->values[0];
@@ -81,8 +140,7 @@ accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data){
     ad->aZ = event->values[2];
 
 
-    /*
-      	 Purely visual => shows timestamp to user
+    /*	Purely visual => shows timestamp to user
       	 may affect performance...
     */
 	// float to string formatting
@@ -101,24 +159,28 @@ accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data){
 	elm_object_text_set(ad->label, timestamp_str);
 
 
-	/*
-	 	 save data in the all_data array
+	/*	save data in the all_data array
 	*/
 	(ad->all_data)[ad->i][0] = ad->timestamp;
 	(ad->all_data)[ad->i][1] = ad->aX;
 	(ad->all_data)[ad->i][2] = ad->aY;
 	(ad->all_data)[ad->i][3] = ad->aZ;
-	//(ad->all_data)[ad->i][4] = ad->rX;
-	//(ad->all_data)[ad->i][5] = ad->rY;
-	//(ad->all_data)[ad->i][6] = ad->rZ;
 
 	/* increase counter */
 	ad->i += 1;
 
-
-
 }
 
+/*
+static void get_current_datetime( char *datetime){
+	// pass variable => char datetime = "";
+	// as => get_current_datetime( &datetime);
+	time_t rawtime;
+	struct tm * timeinfo;
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+	sprintf(datetime, "%s", asctime(timeinfo));
+}*/
 
 /* ------------------------------------------------- */
 static void
@@ -217,6 +279,7 @@ static void _button_click_cb(void *data, Evas_Object *button, void *ev)
 
 		//start accelerometer
 	    int error = sensor_listener_start(ad->accelerationListener );
+	    	error = sensor_listener_start(ad->gyroscopeListener );
 
 		// save starting time + change button value
 		elm_object_text_set(button,"Stop");
@@ -337,9 +400,10 @@ app_create(void *data)
 		If this function returns false, the application is terminated */
 	appdata_s *ad = data;
 
-	// create GUI + register accelerometer
+	// create GUI + register accelerometer and gyroscope
 	create_base_gui(ad);
 	register_accelerometer_callback(ad);
+	register_gyroscope_callback(ad);
 
 	// Start button "clicked" => start timer and data gatheringh
 	evas_object_smart_callback_add(ad->button, "clicked", _button_click_cb, ad);

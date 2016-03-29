@@ -22,11 +22,12 @@ typedef struct appdata {
 	float rY;
 	float rZ;
 
-	/* application timestamp */
-	float timestamp;
+	/* application timestamps */
+	float timestamp;		// accelerometer
 	float start_t;
-	char sys_time[30];
-	//struct tm sys_time;
+	float timestamp_g;		// gyroscope
+	float start_t_g;
+	char sys_time[30];		// general (system)
 	struct tm * timeinfo;
 
 	/* Other objects */
@@ -36,9 +37,14 @@ typedef struct appdata {
     sensor_h accelerometer;
     sensor_listener_h accelerationListener;
 
+    /* accelerometer objects */
+    sensor_h gyroscope;
+    sensor_listener_h gyroscopeListener;
+
     /* array containing all the data (to be saved in a file) */
     float all_data[30000][8];
     int i;
+    int j;
 
 	/* application GUI objects */
 	Evas_Object *win;
@@ -51,6 +57,9 @@ typedef struct appdata {
 
 static void accelerometer_cb(sensor_h sensor, sensor_event_s *event, void *data);
 static int register_accelerometer_callback(appdata_s *ad);
+
+static void gyroscope_cb(sensor_h sensor, sensor_event_s *event, void *data);
+static int register_gyroscope_callback(appdata_s *ad);
 
 #ifdef  LOG_TAG
 #undef  LOG_TAG
