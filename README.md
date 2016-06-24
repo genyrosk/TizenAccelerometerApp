@@ -47,7 +47,7 @@ The ultimate reason for why this app was developped in C is **performance**: the
 3. `app_create()` is invoked and a UI is created with `create_base_gui(ad)` where `ad` is the pointer to the **_app_data_** object, defined as a `struct` in `basicui.h`.
 4. `/src/sensors.c` contains all functions related to the sensors initialization and callback functions. 
 5. The **_app_data_** pointer is passed around multiple functions and ultimately is used to save the collected data in a file, after which the data array variable is reset. 
-6. `tizen-manifest.xml` is to be used to get priveleges, e.g. for writing and storing files in the device. 
+6. `tizen-manifest.xml` is to be used to get **priveleges**, e.g. for writing and storing files in the device. 
 
 
 ### Sensors Initializers
