@@ -85,7 +85,7 @@ The user starts data collection after pressing the **Start** button. The `_butto
 ### Saved Data
 
 Data is oganised in an array and saved in the **json** syntax. 
-0. timestamp
+1. timestamp
 1. accelerometer X
 2. accelerometer Y
 3. accelerometer Z
