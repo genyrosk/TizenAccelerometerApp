@@ -1,6 +1,6 @@
 # Tizen Accelerometer + Gyroscope app
 
-This app has been written in **C** for **Tizen 2.2**, using the Samsung Gear S2 watch. 
+This app has been written in **C** for **Tizen 2.3.1**, using the Samsung Gear S2 watch. 
 The goal of the project was to enable one to collect accelerometer and gyroscope data from the watch that can later be used for other development purposes.
 These may include tracking user motions and advanced machine learning of the data. 
 
@@ -22,21 +22,21 @@ The ultimate reason for why this app was developped in C is **performance**: the
 
 `/src` - source files:
 * `basicui.c`:
-  - ```c 
+  ```c 
   		write_data(...) 		// -> writes the collected data onto a .txt file 
   		save_data(...) 			// -> saves the .txt file in the `/media` folder
   		_button_click_cb(...)  	// -> triggered on user press
   		create_base_gui(...)	// -> creates the app UI
   		app_create(...)			// -> initialises the app 
   		main(...)
-    ```
+  ```
 * `sensors.c`:
-  - ```c 
+  ```c 
   		register_accelerometer_callback(...)
   		accelerometer_cb(...)
   		register_gyroscope_callback(...)
   		gyroscope_cb(...)
-     ```
+  ```
 
 ##### Important stuff
 
@@ -84,7 +84,7 @@ The user starts data collection after pressing the **Start** button. The `_butto
 
 ### Saved Data
 
-Data is oganised in an array and saved in the **json** syntax. 
+Data is oganised in an array and saved in the **json** syntax in the following order: 
 
 1. timestamp
 1. accelerometer X
