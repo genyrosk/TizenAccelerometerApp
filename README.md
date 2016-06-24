@@ -23,14 +23,14 @@ The ultimate reason for why this app was developped in C is **performance**: the
 `/src` - source files:
 * `basicui.c`:
 
-  ```c 
-  		write_data(...) 		// -> writes the collected data onto a .txt file 
-  		save_data(...) 			// -> saves the .txt file in the `/media` folder
-  		_button_click_cb(...)  	// -> triggered on user press
-  		create_base_gui(...)	// -> creates the app UI
-  		app_create(...)			// -> initialises the app 
-  		main(...)
-  ```
+    ```c 
+  	write_data(...) 		// -> writes the collected data onto a .txt file 
+  	save_data(...) 			// -> saves the .txt file in the `/media` folder
+  	_button_click_cb(...)  	// -> triggered on user press
+  	create_base_gui(...)	// -> creates the app UI
+  	app_create(...)			// -> initialises the app 
+  	main(...)
+    ```
 * `sensors.c`:
   ```c 
   		register_accelerometer_callback(...)
